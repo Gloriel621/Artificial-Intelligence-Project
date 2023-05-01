@@ -6,6 +6,8 @@ API_KEY = "API_KEY"                                 # API_KEY
 SEARCH_ENGINE_ID = "SEARCH_ENGINE_ID"               # SEARCH_ENGINE_ID
 NUM_IMAGES = 50                                     # NUMBER OF IMAGES TO DOWNLOAD(MULTIPLE OF 10)
 START_LOCATION = 50                                 # NUMBER OF IMAGES ALREADY DOWNLOADED
+query =  "무신사 로고"                              # QUERY OF IMAGES TO SERACH
+
 headers = requests.utils.default_headers()
 headers.update(
     {
@@ -50,8 +52,6 @@ def download_image(url, filename):
 if __name__ == "__main__":
     if not os.path.exists("images"):
         os.makedirs("images")
-
-    query = "무신사 로고"
     
     for j in range(1, NUM_IMAGES, 10):
         images = search_images(query, 10, START_LOCATION+j)
