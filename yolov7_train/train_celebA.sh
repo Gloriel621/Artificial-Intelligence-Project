@@ -1,0 +1,1 @@
+nohup python -m torch.distributed.launch --nproc_per_node 4 --master_port 9527 train.py --workers 8 --device 0,1,2,3 --sync-bn --batch-size 32 --data data/openlogo.yaml --img 1280 1280 --cfg cfg/training/yolov7.yaml --weights 'yolov7-w6.pt' --name yolov7_logo_full --hyp data/hyp.scratch.p5.yaml --epochs 10 > yolo7_face.log &
