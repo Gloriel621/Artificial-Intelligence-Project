@@ -38,11 +38,10 @@ def swap(config):
 
 
 if __name__ == "__main__":
-    
     config = {
-        "state_dict" : torch.load("metric/save/swap_full.pth", map_location="cpu"), 
+        "state_dict" : torch.load("metric/save/swap_partial.pth", map_location="cpu"), 
         "image_size" : 128,
         "mask_size" : 64,
-        "output_path" : "metric/data/swap_full",
+        "output_path" : "metric/data/swap_partial",
     }
     swap(config)

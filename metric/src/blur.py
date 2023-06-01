@@ -8,7 +8,8 @@ def blur(config):
     path = glob.glob(os.path.join(config["input_path"], "*.jpg"))
     for p in tqdm(path):
         image = cv2.imread(p)
-        image = cv2.GaussianBlur(image, ksize=(21, 21), sigmaX=6)
+        image = cv2.GaussianBlur(image, ksize=(21, 21), sigmaX=3)
+        image = cv2.resize(image, (256, 256))
 
         filename = p.split("/")[-1]
         cv2.imwrite(os.path.join(config["output_path"], filename), image)
