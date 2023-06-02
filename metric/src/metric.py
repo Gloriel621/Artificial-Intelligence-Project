@@ -1,5 +1,10 @@
+import torch
 import numpy as np
 from scipy.stats import multivariate_normal
+from tqdm import tqdm
+
+from model import *
+from dataset import *
 
 
 def JSD(raw_latent, swap_latent):
@@ -12,7 +17,7 @@ def JSD(raw_latent, swap_latent):
     p = multivariate_normal(mean=raw_mean, cov=raw_cov)
     q = multivariate_normal(mean=swap_mean, cov=swap_cov)
 
-    n = 10000
+    n = 100000
 
     X = p.rvs(n)
     p_X = p.pdf(X)
@@ -37,9 +42,36 @@ def MSE(raw_latent, swap_latent):
     mse = np.mean(np.square(raw_latent - swap_latent))
     return mse
 
+def get_latent(input_path):
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    deblurrer = NAFNet(3, 8, 1, [1, 1, 28], [1, 1, 1])
+    deblurrer.load_state_dict(torch.load("metric/save/deblur.pth"))
+
+    dataset = DeblurDataset(input_path, "test")
+    latents = []
+
+    deblurrer.to(device)
+    deblurrer.eval()
+    with torch.no_grad():
+        for image in tqdm(dataset):
+            latent = deblurrer.get_latent(image.unsqueeze(0).to(device))
+            latents.append(latent.copy())
+
+    latents = np.concatenate(latents, axis=0)
+    return latents
+
 if __name__ == "__main__":
-    raw_latent = np.random.rand(100, 32)
-    swap_latent = np.random.rand(100, 32)
+    raw_latent = get_latent("metric/data/raw")
+    swap_latent = get_latent("metric/data/swap_partial")
+
+    jsd = JSD(raw_latent, swap_latent)
+    mse = MSE(raw_latent, swap_latent)
+
+    print("JSD: ", jsd)
+    print("MSE: ", mse)
+
+    swap_latent = get_latent("metric/data/swap_full")
 
     jsd = JSD(raw_latent, swap_latent)
     mse = MSE(raw_latent, swap_latent)
