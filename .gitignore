@@ -3,3 +3,7 @@ __pycache__/
 *.ipynb
 .ipynb_checkpoints/
 storage/
+
+metric/data/
+metric/save/
+.pth
