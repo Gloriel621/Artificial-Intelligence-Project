@@ -3,14 +3,23 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from tqdm import tqdm
+from torchvision.utils import save_image
 
 from dataset import *
 from model import *
 
 
+class PSNRLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x, y):
+        mse = torch.mean((x - y) ** 2)
+        return 10 * torch.log10(mse)
+
+
 def train(config):
-    deblurrer = NAFNet(3, 32, 1, [1, 1, 1, 28], [1, 1, 1, 1])
+    deblurrer = NAFNet(3, 8, 1, [1, 1, 28], [1, 1, 1])
 
     train_dataset = DeblurDataset(config["data_path"], "train")
     train_loader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=True)
@@ -18,7 +27,7 @@ def train(config):
     val_dataset = DeblurDataset(config["data_path"], "val") 
     val_loader = DataLoader(val_dataset, batch_size=config["batch_size"], drop_last=True)
 
-    criterion = nn.MSELoss()
+    criterion = PSNRLoss()
     optimizer = optim.Adam(deblurrer.parameters(), lr=config["lr"])
     scaler = torch.cuda.amp.GradScaler()
 
@@ -38,13 +47,13 @@ def train(config):
             output = deblurrer(image)
             loss = criterion(output, label)
 
-        loss.backward()
+        scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
         optimizer.zero_grad()
 
         train_loss += loss
-        if iter % config["eval_step"] == 0:
+        if it != 0 and (it % config["eval_step"] == 0 or it == config["iteration"] - 1):
             new_val_loss = eval(deblurrer, val_loader, criterion, device)
             train_loss = (train_loss / config["eval_step"]).item()
 
@@ -73,6 +82,9 @@ def eval(deblurrer, val_loader, criterion, device):
                 output = deblurrer(image)
                 loss = criterion(output, label)
 
+            if val_loss == 0:
+                save_image(torch.cat([image, output, label], dim=2), "metric/save/deblur.png", nrow=8)
+
             val_loss += loss
             del image, label, output, loss
 
@@ -82,9 +94,9 @@ def eval(deblurrer, val_loader, criterion, device):
 
 if __name__ == "__main__":
     config = {
-        "lr": 5e-5,
+        "lr": 3e-5,
         "batch_size": 32,
-        "iteration": 10000,
+        "iteration": 20000,
         "eval_step": 256,
         "data_path" : "metric/data/celeba",
     }

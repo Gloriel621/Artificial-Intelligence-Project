@@ -10,6 +10,8 @@ from model import *
 
 
 def swap(config):
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
     generator = Generator(channels=3)
     generator.load_state_dict(config["state_dict"])
 
@@ -25,9 +27,12 @@ def swap(config):
         mask_size=config["mask_size"]
     )
 
+    generator.to(device)
     generator.eval()
     with torch.no_grad():
         for i, (image, gap) in enumerate(tqdm(dataset)):
+            image = image.to(device)
+
             output = generator(image)
             image[:, :, gap: gap + config["mask_size"], gap: gap + config["mask_size"]] = output
 
@@ -39,9 +44,9 @@ def swap(config):
 
 if __name__ == "__main__":
     config = {
-        "state_dict" : torch.load("metric/save/swap_partial.pth", map_location="cpu"), 
+        "state_dict" : torch.load("metric/save/swap_full.pth"), 
         "image_size" : 128,
         "mask_size" : 64,
-        "output_path" : "metric/data/swap_partial",
+        "output_path" : "metric/data/swap_full",
     }
     swap(config)

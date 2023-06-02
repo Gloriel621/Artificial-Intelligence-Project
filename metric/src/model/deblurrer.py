@@ -149,3 +149,20 @@ class NAFNet(nn.Module):
         x = F.pad(x, (0, mod_pad_w, 0, mod_pad_h))
         return x
 
+    def get_latent(self, inp):
+        B, C, H, W = inp.shape
+        inp = self.check_image_size(inp)
+
+        x = self.intro(inp)
+
+        encs = []
+
+        for encoder, down in zip(self.encoders, self.downs):
+            x = encoder(x)
+            encs.append(x)
+            x = down(x)
+
+        x = self.middle_blks(x)
+        latent = x.mean(dim=(2, 3)).cpu().numpy()
+
+        return latent
