@@ -1,5 +1,7 @@
 # ------------------------------------------------------------------------
 # Copyright (c) 2022 megvii-model. All Rights Reserved.
+# Deblurring model from NAFNet
+# https://github.com/megvii-research/NAFNet
 # ------------------------------------------------------------------------
 
 
