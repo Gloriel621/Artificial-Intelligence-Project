@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 
 class SwapDataset(Dataset):
     def __init__(self, data_path, transforms=None, image_size=128, mask_size=64):
-        self.path = sorted(glob.glob("{}/*.jpg".format(data_path)))[-2000:]
+        self.path = glob.glob("{}/*.jpg".format(data_path))
         self.image_size = image_size
         self.mask_size = mask_size
         self.transform = transforms
